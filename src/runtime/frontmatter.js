@@ -1,11 +1,11 @@
-import { store } from "driver";
+import { read_file, store } from "driver";
 
 /**
- * Given a StoreObject in ARG, parses it into `[frontmatter, body]`,
+ * Given a pathname ARG, parses it into `[frontmatter, body]`,
  * where `frontmatter` is an object and `body` is a StoreObject.
  */
 
-const contents = ARG.toString();
+const contents = (await read_file(ARG)).toString();
 
 // Split file into frontmatter (where the props are) and the body
 const [, rawFrontmatter, ...bodyParts] = contents.split("---\n");
@@ -23,6 +23,13 @@ for (const line of rawFrontmatter.split("\n")) {
   frontmatter[prop] = value;
 }
 
-const body = store(bodyParts.join("---\n"));
+const fullBody = bodyParts.join("---\n");
+const [beforeFold, ...afterFoldParts] = fullBody.split("===\n");
+const body = beforeFold + afterFoldParts.join("===\n");
 
-export default { frontmatter, body };
+export default {
+  filename: ARG,
+  frontmatter,
+  beforeFold: store(beforeFold),
+  body: store(body),
+};

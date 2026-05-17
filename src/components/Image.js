@@ -8,7 +8,7 @@ import { run_task } from "driver";
  */
 
 export const Image = async ({ src, alt, title }) => {
-  const img = await run_task("src/runtime/remoteImage.js", {
+  const img = await run_task("src/runtime/image.js", {
     src,
     alt,
     title,

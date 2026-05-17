@@ -14,21 +14,20 @@ import { replaceMatches } from "../util.js";
  *
  * Specifically, transform all remote images matching a regex to be local, minified ones.
  *
- * ARG: { md: SourceObject, path: string | undefined };
- * If `path` is specified, resolve local image references relative to the markdown stored at that path.
+ * ARG: { body: StoreObject, filename: string | undefined };
+ * If specified as a string, resolve local image references relative to the markdown stored at that path.
  */
 
-const dir =
-  typeof ARG.path === "string"
-    ? (() => {
-        const dirIndex = ARG.path.lastIndexOf("/");
-        return ARG.path.slice(0, dirIndex + 1);
-      })()
-    : undefined;
+const input = ARG.body.toString();
+let dir;
+if (typeof ARG.filename === "string") {
+  const dirIndex = ARG.filename.lastIndexOf("/");
+  dir = ARG.filename.slice(0, dirIndex + 1);
+}
 
 const IMAGE_REGEX =
   /!\[(?<alt>[^\]]*)\]\(((<(?<quotedFilename>.*)>)|(?<filename>[^<>]*?))\s*(\"(?<title>.*)\")?\)/gm;
-const ALLOWED_LOCAL_REGEX = /^\.\//;
+const ALLOWED_LOCAL_REGEX = /^\.(\.)?\//;
 const ALLOWED_REMOTE_REGEX = /^https:\/\/static\.wolfgirl\.dev\//;
 
 /**
@@ -52,17 +51,13 @@ const fetchSource = async (match) => {
   return undefined;
 };
 
-const output = await replaceMatches(
-  IMAGE_REGEX,
-  input.toString(),
-  async (match) => {
-    const src = await fetchSource(match);
-    if (!src) return match[0];
+const output = await replaceMatches(IMAGE_REGEX, input, async (match) => {
+  const src = await fetchSource(match);
+  if (!src) return match[0];
 
-    const alt = match.groups.alt || undefined;
-    const title = match.groups.title || undefined;
-    return await Image({ src, alt, title });
-  },
-);
+  const alt = match.groups.alt || undefined;
+  const title = match.groups.title || undefined;
+  return await Image({ src, alt, title });
+});
 
 export default await minify_html(await markdown_to_html(store(output)));

@@ -1,4 +1,4 @@
-import { list_directory, read_file, run_task } from "driver";
+import { list_directory, run_task } from "driver";
 
 /**
  * @typedef {object} Props
@@ -31,12 +31,15 @@ export const glob =
     const output = {};
     await Promise.all(
       filesWithSlug.map(async ([filename, slug]) => {
-        const file = await read_file(filename);
-        const { frontmatter, body } = await run_task(
+        const { frontmatter, ...rest } = await run_task(
           "src/runtime/frontmatter.js",
-          file,
+          filename,
         );
-        output[filename] = { frontmatter: schema(frontmatter), body, slug };
+        output[filename] = {
+          ...rest,
+          frontmatter: schema(frontmatter),
+          slug,
+        };
       }),
     );
     return output;

@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <title>Test Page</title>
+  {% read(file="src/fragments/head.html") | unstore %}
+</head>
+<body>
+  <h1>Testing Things</h1>
+  {% set entries = list(dir="src/posts") %}
+  {% set_global pages = [] %}
+  {% for entry in entries %}
+    {% if file_type(entry=entry) == "file" %}
+      {% set_global pages = pages | concat(with=run_task(file="src/runtime/frontmatter.js", arg=entry)) %}
+    {% endif %}
+  {% endfor %}
+  {# Alternatively:
+  {% set pages = run_task(file="src/pages/[slug].html.js") %}
+  #}
+
+  <ol>
+  {% for page in pages | sort(by="frontmatter.published") | reverse %}
+    <li>
+      <a href="/posts/{{ page.frontmatter.title | slugify }}">{{ page.frontmatter.title }}</a>:
+      {{ page.beforeFold | unstore }}
+    </li>
+  {% endfor %}
+  </ol>
+</body>
+</html>

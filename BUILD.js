@@ -4,6 +4,7 @@ import {
   minify_html,
   read_file,
   run_task,
+  run_template,
   write_output,
 } from "driver";
 const PAGE_ROOT = "./src/pages/";
@@ -22,9 +23,22 @@ const inputPathToOutputPath = (inputPath) => {
       outputPath = outputPath.slice(0, -".html".length);
       outputPath = `${outputPath}/index.html`;
     }
+  } else if (inputPath.endsWith(".tera")) {
+    // Execute the file to build (assuming it's javascript)
+    outputPath = inputPath.slice(PAGE_ROOT.length, -5);
+    if (outputPath.endsWith(".html") && !outputPath.endsWith("index.html")) {
+      // Path should actually be a directory
+      outputPath = outputPath.slice(0, -".html".length);
+      outputPath += "/index.html";
+    }
   } else if (inputPath.endsWith(".md")) {
     // Render the file as markdown
-    outputPath = `${inputPath.slice(PAGE_ROOT.length, -3)}/index.html`;
+    outputPath = inputPath.slice(PAGE_ROOT.length, -3);
+    if (outputPath.endsWith("/index")) {
+      outputPath += ".html";
+    } else {
+      outputPath += "/index.html";
+    }
   } else {
     throw new Error(`not an input path: ${inputPath}`);
   }
@@ -47,6 +61,7 @@ const build = async (inputPath) => {
         } else if (
           entry.startsWith(PUBLIC_ROOT) ||
           entry.endsWith(".js") ||
+          entry.endsWith(".tera") ||
           entry.endsWith(".md")
         ) {
           await run_task("BUILD.js", entry);
@@ -82,6 +97,14 @@ const build = async (inputPath) => {
     // Run the file directly
     let output = await run_task(inputPath, outputPath);
     if (inputPath.endsWith(".html.js")) {
+      output = await minify_html(output);
+    }
+    write_output(outputPath, output);
+  } else if (inputPath.endsWith(".tera")) {
+    const outputPath = inputPathToOutputPath(inputPath);
+    // Template the file without any arguments
+    let output = await run_template(inputPath, null);
+    if (inputPath.endsWith(".html.tera")) {
       output = await minify_html(output);
     }
     write_output(outputPath, output);
