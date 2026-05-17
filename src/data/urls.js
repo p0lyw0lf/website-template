@@ -1,8 +1,9 @@
-export const SITE_URL = "https://wolfgirl.dev";
+// MODIFY: replace this with the actual base URL of your website
+export const SITE_URL = "";
 
 /**
  * @param {import("driver").StoreImage} src
  * @returns {string}
  */
 export const toAssetUrl = (image) =>
-  `${SITE_URL}/_assets/${image.object().hash().slice(-18)}.${image.format()}`;
+  `/_assets/${image.object().hash().slice(-18)}.${image.format()}`;

@@ -5,7 +5,7 @@ import {
   store,
   write_output,
 } from "driver";
-import { toAssetUrl } from "../data/urls.js";
+import { SITE_URL, toAssetUrl } from "../data/urls.js";
 import { attributes, html } from "../render.js";
 
 /**
@@ -44,7 +44,7 @@ const resize = async (format) => {
     );
     const { width } = resizedImage.size();
     return html`<source
-      srcset="${src}"
+      srcset="${SITE_URL}${src}"
       media="(width >= ${width}px)"
       type="image/${format}"
     />`;
@@ -65,7 +65,7 @@ write_output(primarySrc.slice(1), convertedImage.object());
 
 let output = html`<img
   ${attributes({
-    src: primarySrc,
+    src: `${SITE_URL}${primarySrc}`,
     height: finalHeight,
     width: finalWidth,
     alt: alt || undefined,

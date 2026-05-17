@@ -8,7 +8,9 @@ import {
 
 const getPages = async () => {
   const entries = await list_directory("src/posts");
-  const filenames = entries.filter((entry) => file_type(entry) === "file");
+  const filenames = entries.filter(
+    (entry) => entry.endsWith(".md") && file_type(entry) === "file",
+  );
   const pages = await Promise.all(
     filenames.map(async (filename) => {
       return await run_task("src/runtime/frontmatter.js", filename);
