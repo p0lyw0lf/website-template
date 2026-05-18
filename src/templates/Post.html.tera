@@ -7,6 +7,6 @@
 <body>
 <h1>{{ frontmatter.title }}</h1>
 <main>
-  {{ run_task(file="src/runtime/markdown.js", filename=filename, body=body) | unstore }}
+  {{ run_task(file="src/runtime/markdown.js", arg=body) | unstore }}
 </main>
 </html>

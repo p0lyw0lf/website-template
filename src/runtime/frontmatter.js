@@ -9,6 +9,9 @@ const contents = (await read_file(ARG)).toString();
 
 // Split file into frontmatter (where the props are) and the body
 const [, rawFrontmatter, ...bodyParts] = contents.split("---\n");
+if (rawFrontmatter === undefined) {
+  throw new Error(`${ARG} is missing frontmatter`);
+}
 
 // This is a _very_ hacky YAML parser, but I think it gets the job done with what Obsidian outputs at least
 
@@ -21,10 +24,10 @@ const parseValue = (value) => {
   if (!value) {
     return undefined;
   }
-  try {
-    return Number(value);
-  } catch {
-    // pass
+
+  const n = Number(value);
+  if (!isNaN(n)) {
+    return n;
   }
 
   if (
@@ -70,7 +73,7 @@ const [beforeFold, ...afterFoldParts] = fullBody.split("===\n");
 const body = beforeFold + afterFoldParts.join("===\n");
 
 export default {
-  filename: ARG,
+  inputPath: ARG,
   frontmatter,
   beforeFold: store(beforeFold),
   body: store(body),

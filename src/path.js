@@ -24,16 +24,14 @@ export const basename = (dir) => {
  */
 export const splitext = (path) => {
   const parts = path.split("/");
-  const dir = parts.slice(0, -1).join("/");
+  const dir = parts.slice(0, -1);
   const filename = parts[parts.length - 1];
   const dotIndex = filename.indexOf(".");
   if (dotIndex <= 0) {
     return [path, ""];
   }
-  return [
-    `${dir}/${filename.slice(0, dotIndex)}`,
-    filename.slice(dotIndex + 1),
-  ];
+  dir.push(`${filename.slice(0, dotIndex)}`);
+  return [dir.join("/"), filename.slice(dotIndex + 1)];
 };
 
 /**
@@ -42,7 +40,8 @@ export const splitext = (path) => {
  */
 export const slugifyPath = (path, transform = slugify) => {
   const parts = path.split("/");
-  const dir = parts.slice(0, -1).map(transform).join("/");
+  const dir = parts.slice(0, -1).map(transform);
   const [base, ext] = splitext(parts[parts.length - 1]);
-  return `${dir}/${transform(base)}${ext ? "." : ""}${ext}`;
+  dir.push(`${transform(base)}${ext ? "." : ""}${ext}`);
+  return dir.join("/");
 };

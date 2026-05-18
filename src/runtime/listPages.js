@@ -1,5 +1,6 @@
 import { file_type, list_directory, run_task } from "driver";
 import { inputPathToOutputPath } from "../../build/config.js";
+import { basename } from "../path.js";
 
 /** ARG: string, representing the directory of markdown pages you want to list. */
 
@@ -7,12 +8,20 @@ const entries = await list_directory(ARG);
 const filenames = (
   await Promise.all(
     entries.map(async (entry) => {
+      if (basename(entry).startsWith("_")) {
+        return [];
+      }
+
       const type = file_type(entry);
-      if (type === "file" && entry.endsWith(".md")) {
+      if (
+        type === "file" &&
+        entry.endsWith(".md") &&
+        !entry.endsWith("/index.md")
+      ) {
         return [entry];
       }
       // Look for subdirectories that have an "index.md" file in them
-      if (type === "directory") {
+      if (type === "dir") {
         return (await list_directory(entry)).filter((subEntry) =>
           subEntry.endsWith("/index.md"),
         );

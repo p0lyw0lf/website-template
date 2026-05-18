@@ -15,8 +15,10 @@ if (ARG.inputPath.endsWith("/index.md")) {
 page.outputPath = ARG.outputPath;
 
 if (!page.frontmatter.template) {
-  throw new Exception(`${page.filename} missing template in frontmatter`);
+  throw new Error(`${page.filename} missing template in frontmatter`);
 }
 const template = `src/templates/${page.frontmatter.template}`;
 
-export default await run_template(template, page);
+export default template.endsWith(".js")
+  ? await run_task(template, page)
+  : await run_template(template, page);

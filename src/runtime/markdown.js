@@ -1,4 +1,10 @@
-import { markdown_to_html, minify_html, store } from "driver";
+import {
+  get_url,
+  markdown_to_html,
+  minify_html,
+  read_file,
+  store,
+} from "driver";
 import { Image } from "../components/Image.js";
 import { html } from "../render.js";
 import { replaceMatches } from "../util.js";
@@ -31,7 +37,9 @@ const ALLOWED_REMOTE_REGEX = /^https:\/\/static\.wolfgirl\.dev\//;
  */
 const fetchSource = async (match) => {
   const filename = match.groups.quotedFilename || match.groups.filename || "";
-  if (!filename) return undefined;
+  if (!filename) {
+    return undefined;
+  }
 
   let url = filename;
   if (REMOTE_REGEX.test(filename)) {
@@ -58,8 +66,9 @@ const fetchSource = async (match) => {
   return { type: "localImage", url: VAULT_ROOT + filename };
 };
 
+const input = ARG.toString();
 const output = await replaceMatches(IMAGE_REGEX, input, async (match) => {
-  const src = await fetchSource(match);
+  let src = await fetchSource(match);
   switch (src?.type) {
     case "video":
       return html`<video src="${src.url}" controls />`;
