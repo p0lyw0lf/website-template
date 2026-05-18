@@ -1,5 +1,14 @@
 import { slugifyPath, splitext } from "../src/path.js";
 
+/**
+ * MODIFY: replace this with the subfolder under your domain this site will live in, **not including a trailing slash**.
+ *
+ * e.x.:
+ * + if the output will be at https://wolfgirl.dev, then SITE_URL = ""
+ * + if the output will be at https://foobar.com/baz, then SITE_URL = "/baz"
+ */
+export const SITE_URL = "";
+
 /** A folder that will be built to generate all the pages in the site. */
 export const PAGE_ROOT = "./src/pages/";
 /** A folder that, whatever is placed inside, will get copied verbatim to the output. */
@@ -11,10 +20,17 @@ export const PUBLIC_ROOT = "./public/";
  */
 export const VAULT_ROOT = PAGE_ROOT;
 
-/** MODIFY: If you use markdown ![]() syntax with these, it will create a `<video>` element instead of an image one. See src/runtime/markdown.js */
+/**
+ * MODIFY: If you use markdown `![]()` syntax with these, it will create a
+ * `<video>` element instead of an `<img>` one.
+ * See src/runtime/markdown.js
+ */
 export const VIDEO_EXTENSIONS = [".mp4", ".mkv", ".mov", ".webm"];
 
-/** MODIFY: If you would like to transform remote images in addition to local ones, set this to match your website. Otherwise, set it to undefined. */
+/**
+ * MODIFY: If you would like to transform remote images in addition to local ones,
+ * set this to match your website. Otherwise, set it to undefined.
+ */
 export const ALLOWED_REMOTE_REGEX = /^https:\/\/static\.wolfgirl\.dev\//;
 
 export const BUILD_EXTS = {

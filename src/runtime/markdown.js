@@ -63,7 +63,6 @@ const fetchSource = async (match) => {
   }
 
   // Resolve the filename relative to the vault root.
-  // TODO: provide a way to configure the "vault root" and "site url" in a more centralized location
   return { type: "localImage", url: VAULT_ROOT + filename };
 };
 
@@ -72,7 +71,7 @@ const output = await replaceMatches(IMAGE_REGEX, input, async (match) => {
   let src = await fetchSource(match);
   switch (src?.type) {
     case "video":
-      return html`<video src="${src.url}" controls />`;
+      return html`<video src="${src.url}" controls></video>`;
     case "remoteImage":
       src = await get_url(src.url);
       break;

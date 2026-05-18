@@ -5,7 +5,8 @@ import {
   store,
   write_output,
 } from "driver";
-import { SITE_URL, toAssetUrl } from "../data/urls.js";
+import { SITE_URL } from "../../build/config.js";
+import { toAssetUrl } from "../data/urls.js";
 import { attributes, html } from "../render.js";
 
 /**
