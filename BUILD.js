@@ -5,6 +5,7 @@ import {
   read_file,
   run_task,
   run_template,
+  slugify,
   write_output,
 } from "driver";
 const PAGE_ROOT = "./src/pages/";
@@ -13,27 +14,40 @@ const PUBLIC_ROOT = "./public/";
 // Tests if the page defines a dynamic route
 const dynamicRegex = /\[([a-zA-Z0-9_]+)\].*\.js$/;
 
+const slugifyPath = (path) => path.split("/").map(slugify).join("/");
+
 const inputPathToOutputPath = (inputPath) => {
   let outputPath;
   if (inputPath.endsWith(".js")) {
     // Execute the file to build (assuming it's javascript)
     outputPath = inputPath.slice(PAGE_ROOT.length, -3);
-    if (outputPath.endsWith(".html") && !outputPath.endsWith("index.html")) {
+    if (outputPath.endsWith(".html")) {
       // Path should actually be a directory
       outputPath = outputPath.slice(0, -".html".length);
-      outputPath = `${outputPath}/index.html`;
+      outputPath = slugifyPath(outputPath);
+      if (!outputPath.endsWith("index.html")) {
+        outputPath = `${outputPath}/index.html`;
+      }
+    } else {
+      // TODO: slugify everything except the filename
     }
   } else if (inputPath.endsWith(".tera")) {
     // Execute the file to build (assuming it's javascript)
     outputPath = inputPath.slice(PAGE_ROOT.length, -5);
-    if (outputPath.endsWith(".html") && !outputPath.endsWith("index.html")) {
+    if (outputPath.endsWith(".html")) {
       // Path should actually be a directory
       outputPath = outputPath.slice(0, -".html".length);
-      outputPath += "/index.html";
+      outputPath = slugifyPath(outputPath);
+      if (!outputPath.endsWith("index.html")) {
+        outputPath = `${outputPath}/index.html`;
+      }
+    } else {
+      // TODO: slugify everything except the filename
     }
   } else if (inputPath.endsWith(".md")) {
     // Render the file as markdown
     outputPath = inputPath.slice(PAGE_ROOT.length, -3);
+    outputPath = slugifyPath(outputPath);
     if (outputPath.endsWith("/index")) {
       outputPath += ".html";
     } else {
@@ -56,6 +70,9 @@ const build = async (inputPath) => {
     const entries = await list_directory(inputPath);
     await Promise.all(
       entries.map(async (entry) => {
+        // Don't build anything starting with _
+        if (entry.startsWith("_")) return;
+
         if (file_type(entry) === "dir") {
           await run_task("BUILD.js", entry);
         } else if (
@@ -109,10 +126,11 @@ const build = async (inputPath) => {
     }
     write_output(outputPath, output);
   } else if (inputPath.endsWith(".md")) {
+    // TODO: expose this path to the md.js file too probably? Will be useful for it to know I think.
+    // TODO: expose dirname and basename filters to tera templates (seems like they'll be useful)
     const outputPath = inputPathToOutputPath(inputPath);
     // Render the file as markdown
-    const input = await read_file(inputPath);
-    let output = await run_task("src/build/md.js", input);
+    let output = await run_task("src/build/md.js", inputPath);
     output = await minify_html(output);
     write_output(outputPath, output);
   }

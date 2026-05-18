@@ -11,7 +11,6 @@ const contents = (await read_file(ARG)).toString();
 const [, rawFrontmatter, ...bodyParts] = contents.split("---\n");
 
 // This is a _very_ hacky YAML parser, but I think it gets the job done with what Obsidian outputs at least
-const NUMBER_REGEX = /^[+-]?[0-9]+(\.[0-9]*)?$/;
 
 /**
  * @param {string} value
@@ -22,9 +21,12 @@ const parseValue = (value) => {
   if (!value) {
     return undefined;
   }
-  if (NUMBER_REGEX.test(value)) {
+  try {
     return Number(value);
+  } catch {
+    // pass
   }
+
   if (
     value === "undefined" ||
     value === "null" ||

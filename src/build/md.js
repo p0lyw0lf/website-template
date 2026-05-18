@@ -1,16 +1,12 @@
-import { run_task } from "driver";
-import { MarkdownPage } from "../templates/MarkdownPage.js";
+import { run_task, run_template } from "driver";
 
-const { filename, frontmatter, body } = await run_task(
-  "src/runtime/frontmatter.js",
-  ARG,
-);
+const page = await run_task("src/runtime/frontmatter.js", ARG);
 
-// Parse the body as markdown, and render as HTML
-const renderedBody = await run_task("src/runtime/markdown.js", {
-  filename,
-  body,
-});
+if (!page.frontmatter.template) {
+  throw new Exception(`${page.filename} missing template in frontmatter`);
+}
+const template = `src/templates/${page.frontmatter.template}`;
 
-// Use the read frontmatter to render the final HTML
-export default await MarkdownPage(frontmatter)(renderedBody.toString());
+// TODO: document the variables that are populated in this template
+// TODO: way to include child pages for index page?? or that should probably be in BUILD.js
+export default await run_template(template, page);
