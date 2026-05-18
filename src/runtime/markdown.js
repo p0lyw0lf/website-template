@@ -5,6 +5,11 @@ import {
   read_file,
   store,
 } from "driver";
+import {
+  ALLOWED_REMOTE_REGEX,
+  VAULT_ROOT,
+  VIDEO_EXTENSIONS,
+} from "../../build/config.js";
 import { Image } from "../components/Image.js";
 import { html } from "../render.js";
 import { replaceMatches } from "../util.js";
@@ -18,13 +23,9 @@ import { replaceMatches } from "../util.js";
  * ARG: StoreObject
  */
 
-const VAULT_ROOT = "src/pages/";
-const VIDEO_EXTENSIONS = [".mp4", ".mkv", ".mov", ".webm"];
-
 const IMAGE_REGEX =
   /!\[(?<alt>[^\]]*)\]\(((<(?<quotedFilename>.*)>)|(?<filename>[^<>]*?))\s*(\"(?<title>.*)\")?\)/gm;
 const REMOTE_REGEX = /^https?:\/\//;
-const ALLOWED_REMOTE_REGEX = /^https:\/\/static\.wolfgirl\.dev\//;
 
 /**
  * @param {RegExpMatchArray} match
