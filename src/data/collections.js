@@ -1,4 +1,4 @@
-import { list_directory, run_task } from "driver";
+import { list_directory, run_js } from "driver";
 
 /**
  * @typedef {object} Props
@@ -31,7 +31,7 @@ export const glob =
     const output = {};
     await Promise.all(
       filesWithSlug.map(async ([filename, slug]) => {
-        const { frontmatter, ...rest } = await run_task(
+        const { frontmatter, ...rest } = await run_js(
           "src/runtime/frontmatter.js",
           filename,
         );

@@ -1,12 +1,12 @@
 <!doctype html>
 <html>
 <head>
-<title>{{ frontmatter.title }}</title>
+<title>{{ currentPage.frontmatter.title }}</title>
 {{ read(file="src/fragments/head.html") | unstore }}
 </head>
 <body>
-<h1>{{ frontmatter.title }}</h1>
+<h1>{{ currentPage.frontmatter.title }}</h1>
 <main>
-  {{ run_task(file="src/runtime/markdown.js", arg=body) | unstore }}
+  {{ run_js(file="src/runtime/markdown.js", arg=currentPage.body) | unstore }}
 </main>
 </html>

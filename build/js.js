@@ -1,4 +1,4 @@
-import { run_task } from "driver";
+import { run_js } from "driver";
 
 /** ARG: { inputPath: string; outputPath: string } */
-export default await run_task(ARG.inputPath, ARG.outputPath);
+export default await run_js(ARG.inputPath, ARG.outputPath);

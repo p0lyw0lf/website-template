@@ -1,16 +1,16 @@
 <!doctype html>
 <html>
 <head>
-  <title>{{ frontmatter.title }}</title>
+  <title>{{ currentPage.frontmatter.title }}</title>
   {{ read(file="src/fragments/head.html") | unstore }}
 </head>
 <body>
-  <h1>Index for {{ outputPath }}</h1>
+  <h1>Index for {{ currentPage.outputPath }}</h1>
   <ol>
-  {% for child in children %}
+  {% for child in currentPage.children %}
     <li>
       <a href="/{{ child.outputPath }}">{{ child.frontmatter.title }}</a>:
-      {{ run_task(file="src/runtime/markdown.js", arg=child.beforeFold) | unstore }}
+      {{ run_js(file="src/runtime/markdown.js", arg=child.beforeFold) | unstore }}
     </li>
   {% endfor %}
   </ol>

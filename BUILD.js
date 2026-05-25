@@ -3,7 +3,7 @@ import {
   list_directory,
   minify_html,
   read_file,
-  run_task,
+  run_js,
   write_output,
 } from "driver";
 import {
@@ -26,7 +26,7 @@ const build = async (inputPath) => {
       const entries = await list_directory(inputPath);
       await Promise.all(
         entries.map(async (entry) => {
-          await run_task("BUILD.js", entry);
+          await run_js("BUILD.js", entry);
         }),
       );
     } else {
@@ -42,7 +42,7 @@ const build = async (inputPath) => {
     const entries = await list_directory(inputPath);
     const subBuild = entries.find((entry) => entry.endsWith("BUILD.js"));
     if (subBuild) {
-      await run_task(subBuild, null);
+      await run_js(subBuild, null);
       return;
     }
 
@@ -52,17 +52,17 @@ const build = async (inputPath) => {
         if (basename(entry).startsWith("_")) return;
 
         if (file_type(entry) === "dir") {
-          await run_task("BUILD.js", entry);
+          await run_js("BUILD.js", entry);
         } else if (
           Object.keys(BUILD_EXTS).some((ext) => entry.endsWith(`.${ext}`))
         ) {
-          await run_task("BUILD.js", entry);
+          await run_js("BUILD.js", entry);
         }
       }),
     );
   } else {
     const { outputPath, ext } = inputPathToOutputPath(inputPath);
-    let output = await run_task(`./build/${ext}.js`, { inputPath, outputPath });
+    let output = await run_js(`./build/${ext}.js`, { inputPath, outputPath });
     if (outputPath.endsWith(".html")) {
       output = await minify_html(output);
     }

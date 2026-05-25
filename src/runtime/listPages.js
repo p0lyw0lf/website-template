@@ -1,4 +1,4 @@
-import { file_type, list_directory, run_task } from "driver";
+import { file_type, list_directory, run_js } from "driver";
 import { inputPathToOutputPath } from "../../build/config.js";
 import { basename } from "../path.js";
 
@@ -34,7 +34,7 @@ const filenames = (
 const pages = await Promise.all(
   filenames.map(async (filename) => {
     const { outputPath } = inputPathToOutputPath(filename);
-    const page = await run_task("src/runtime/frontmatter.js", filename);
+    const page = await run_js("src/runtime/frontmatter.js", filename);
     return { ...page, outputPath };
   }),
 );

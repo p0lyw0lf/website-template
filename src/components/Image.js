@@ -1,4 +1,4 @@
-import { run_task } from "driver";
+import { run_js } from "driver";
 
 /**
  * @typedef {object} Props
@@ -8,7 +8,7 @@ import { run_task } from "driver";
  */
 
 export const Image = async ({ src, alt, title }) => {
-  const img = await run_task("src/runtime/image.js", {
+  const img = await run_js("src/runtime/image.js", {
     src,
     alt,
     title,
