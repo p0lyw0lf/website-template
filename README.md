@@ -90,7 +90,14 @@ From Tera templates, a common thing to do is render markdown. This can be
 achieved with
 
 ```tera
-{{ run_js(file="src/runtime/markdown.js", arg=body) | unstore }}
+{{ run_js(file="src/runtime/markdown.js", body=currentPage.body, filename=currentPage.inputPath) | unstore }}
+```
+
+If you have markdown that is not associated with any particular source file,
+you can instead transform it with:
+
+```tera
+{{ run_js(file="src/runtime/markdown.js", arg=something_from_store_filter) | unstore }}
 ```
 
 If you have a common set of things you want to put in your `<head>`, one way to
@@ -101,6 +108,20 @@ do that would be:
 <html>
   <head>
     {{ read(file="src/fragments/head.html") | unstore }}
+  </head>
+  <body>
+    ...
+  </body>
+</html>
+```
+
+Or, if you want it to be a sub-template, then with:
+
+```tera
+<!doctype html>
+<html>
+  <head>
+    {{ run_tera(template="src/fragments/head.html.tera", currentPage=currentPage) | unstore }}
   </head>
   <body>
     ...

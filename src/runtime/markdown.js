@@ -1,4 +1,5 @@
 import {
+  file_type,
   get_url,
   markdown_to_html,
   minify_html,
@@ -11,8 +12,19 @@ import {
   VIDEO_EXTENSIONS,
 } from "../../build/config.js";
 import { Image } from "../components/Image.js";
+import { dirname } from "../path.js";
 import { html } from "../render.js";
 import { replaceMatches } from "../util.js";
+
+/** ARG: StoreObject | { body: StoreObject, filename: string } */
+let input;
+let inputDir;
+if ("filename" in ARG) {
+  inputDir = dirname(ARG.filename);
+  input = ARG.body.toString();
+} else {
+  input = ARG.toString();
+}
 
 /**
  * Given a store argument in ARG, format the markdown as HTML, applying any special transformations
@@ -62,11 +74,67 @@ const fetchSource = async (match) => {
     return undefined;
   }
 
-  // Resolve the filename relative to the vault root.
-  return { type: "localImage", url: VAULT_ROOT + filename };
+  // Try to resolve the local filename
+  url = resolveFile(url);
+  if (!url) {
+    print("WARNING: could not resolve local markdown file", filename);
+    return undefined;
+  }
+
+  return { type: "localImage", url };
 };
 
-const input = ARG.toString();
+/**
+ * Given a markdown image filename, tries to resolve it to a path that can be passed to `read_file`.
+ *
+ * @param {string} filename
+ * @returns {string}
+ */
+const resolveFile = (filename) => {
+  /**
+   * There are four total possible scenarios:
+   *
+   *             | Relative to ARG.filename | Relative to VAULT_ROOT |
+   * ------------+--------------------------+------------------------+
+   * Not encoded |            A             |            C           |
+   * ------------+--------------------------+------------------------+
+   * URI-encoded |            B             |            D           |
+   * ------------+--------------------------+------------------------+
+   *
+   * To support the broadest range possible, try all of these files, in the order ABCD.
+   */
+
+  let resolved;
+  if (inputDir) {
+    // A
+    resolved = tryResolve(`${inputDir}/${filename}`);
+    if (resolved) return resolved;
+
+    // B
+    resolved = tryResolve(`${inputDir}/${decodeURIComponent(filename)}`);
+    if (resolved) return resolved;
+  }
+
+  // C
+  resolved = tryResolve(VAULT_ROOT + filename);
+  if (resolved) return resolved;
+
+  // D
+  resolved = tryResolve(VAULT_ROOT + decodeURIComponent(filename));
+  if (resolved) return resolved;
+
+  return undefined;
+};
+
+const tryResolve = (path) => {
+  try {
+    file_type(path);
+    return path;
+  } catch {
+    return undefined;
+  }
+};
+
 const output = await replaceMatches(IMAGE_REGEX, input, async (match) => {
   let src = await fetchSource(match);
   switch (src?.type) {
