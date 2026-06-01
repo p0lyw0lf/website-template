@@ -13,73 +13,42 @@ import { attributes, html } from "../render.js";
  * Given a src (StoreObject), alt, and title text, converts the image to a safe version for inclusion later.
  */
 
-const { src, alt, title, widths, width, height, loading, format } = ARG;
+const { src, filename, alt, title, defaultOpts, otherOpts } = ARG;
 
 const image = await parse_image(src);
 
 /**
- * @param {"jxl" | "webp"} format
- * @returns {Promise<string[]>} <source> elements
+ * @property {object} opts - The image options to use for the conversion
+ * @property {boolean} isSource - Whether this is a `<source>` element or an `<img>` element.
+ * @returns {import("driver").StoreObject}
  */
-const resize = async (format) => {
-  // TODO: better way of specifying dimensions we want to resize to. For now this is probably fine tho.
-  if (!widths?.length) return [];
-  const resizedImages = await Promise.all(
-    widths
-      .filter((width) => width < image.size().width)
-      .map(async (width) => {
-        const resizedImage = await convert_image(image, {
-          format,
-          size: { width, height: image.size().height },
-          fit: "contain",
-        });
-        return resizedImage;
-      }),
-  );
-
-  return resizedImages.map((resizedImage) => {
-    const src = toAssetUrl(resizedImage);
-    write_output(
-      src.slice(1) /* slices off the leading slash */,
-      resizedImage.object(),
-    );
-    const { width } = resizedImage.size();
-    return html`<source
-      srcset="${SITE_URL}${src}"
-      media="(width >= ${width}px)"
-      type="image/${format}"
-    />`;
-  });
+const convert = async (opts, isSource) => {
+  const convertedImage = await convert_image(image, opts);
+  const src = toAssetUrl(convertedImage, filename);
+  write_output(src.slice(1), convertedImage.object());
+  return isSource
+    ? html`<source
+        ${attributes({
+          srcset: `${SITE_URL}${src}`,
+          type: `image/${convertedImage.format()}`,
+        })}
+      />`
+    : html`<img
+        ${attributes({
+          src: `${SITE_URL}${src}`,
+          alt: alt || undefined,
+          title: title || undefined,
+        })}
+      />`;
 };
 
-const desiredWidth = width || image.size().width;
-const desiredHeight = height || image.size().height;
-const convertedImage = await convert_image(image, {
-  format: format || "jpeg",
-  size: { width: desiredWidth, height: desiredHeight },
-  fit: "contain",
-});
-const { width: finalWidth, height: finalHeight } = convertedImage.size();
+const [defaultElem, ...otherElems] = await Promise.all([
+  convert(defaultOpts, false),
+  ...otherOpts?.map((opts) => convert(opts, true)),
+]);
 
-const primarySrc = toAssetUrl(convertedImage);
-write_output(primarySrc.slice(1), convertedImage.object());
-
-let output = html`<img
-  ${attributes({
-    src: `${SITE_URL}${primarySrc}`,
-    height: finalHeight,
-    width: finalWidth,
-    alt: alt || undefined,
-    loading: loading || undefined,
-    title: title || undefined,
-  })}
-/>`;
-if (widths?.length) {
-  const [jxlSources, webpSources] = await Promise.all([
-    resize("jxl"),
-    resize("webp"),
-  ]);
-
-  output = html`<picture>${jxlSources}${webpSources}${output}</picture>`;
+let output = defaultElem;
+if (otherElems?.length) {
+  output = html`<picture>${otherElems}${output}</picture>`;
 }
 export default await minify_html(store(output.toString()));
