@@ -28,11 +28,11 @@ export const Image = async ({ src, filename, alt, title, frontmatter }) => {
     filename,
     alt,
     title,
-    defaultOpts: frontmatter?.default ?? {
+    defaultOpts: frontmatter?.defaultOpts ?? {
       format: "jpeg",
       encoder_options: { quality: 92 },
     },
-    otherOpts: frontmatter?.sources ?? [
+    otherOpts: frontmatter?.otherOpts ?? [
       { format: "jxl", encoder_options: { quality: 95, effort: 6 } },
     ],
   });

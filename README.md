@@ -90,7 +90,7 @@ From Tera templates, a common thing to do is render markdown. This can be
 achieved with
 
 ```tera
-{{ run_js(file="src/runtime/markdown.js", body=currentPage.body, filename=currentPage.inputPath) | unstore }}
+{{ run_js(file="src/runtime/markdown.js", arg=currentPage) | unstore }}
 ```
 
 If you have markdown that is not associated with any particular source file,

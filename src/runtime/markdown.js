@@ -12,16 +12,18 @@ import {
   VIDEO_EXTENSIONS,
 } from "../../build/config.js";
 import { Image } from "../components/Image.js";
-import { dirname } from "../path.js";
+import { basename, dirname } from "../path.js";
 import { html } from "../render.js";
 import { replaceMatches } from "../util.js";
 
-/** ARG: StoreObject | { body: StoreObject, filename: string } */
+/** ARG: StoreObject | Page */
 let input;
 let inputDir;
-if ("filename" in ARG) {
-  inputDir = dirname(ARG.filename);
+let frontmatter;
+if ("body" in ARG && "inputPath" in ARG) {
+  inputDir = dirname(ARG.inputPath);
   input = ARG.body.toString();
+  frontmatter = ARG.frontmatter;
 } else {
   input = ARG.toString();
 }
@@ -137,13 +139,16 @@ const tryResolve = (path) => {
 
 const output = await replaceMatches(IMAGE_REGEX, input, async (match) => {
   let src = await fetchSource(match);
+  let filename;
   switch (src?.type) {
     case "video":
       return html`<video src="${src.url}" controls></video>`;
     case "remoteImage":
+      filename = basename(src.url);
       src = await get_url(src.url);
       break;
     case "localImage":
+      filename = basename(src.url);
       src = await read_file(src.url);
       break;
     default:
@@ -152,7 +157,7 @@ const output = await replaceMatches(IMAGE_REGEX, input, async (match) => {
 
   const alt = match.groups.alt || undefined;
   const title = match.groups.title || undefined;
-  return await Image({ src, alt, title });
+  return await Image({ src, filename, alt, title, frontmatter });
 });
 
 export default await minify_html(await markdown_to_html(store(output)));
