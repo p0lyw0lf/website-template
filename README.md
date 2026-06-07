@@ -1,6 +1,6 @@
-# obsidian-website-template
+# PolyWolf's Website Template
 
-this is a template for generating a static site from [Obsidian](https://obsidian.md) files using [my custom build driver](https://github.com/p0lyw0lf/driver).
+This is a barebones, "bring-your-own-styling" template for generating a static site from an [Obsidian](https://obsidian.md) vault using [my custom build driver](https://github.com/p0lyw0lf/driver).
 
 ## Setup
 
@@ -18,16 +18,13 @@ Finally, you'll be able to build the site with
 ./driver run BUILD.js
 ```
 
-(if distributed as a target, I have provided a binary that runs on Debian as a convenience)
-
 ## General Notes
 * We do not support wikilinks as all, only standard `[]()` links.
 * `![]()` images referring to local images are automatically processed into
-  `<picture>` elements containing jxl & webp sources. To modify the image
+  `<picture>` elements containing jxl & jpeg sources. To modify the image
   processing, see `src/runtime/markdown.js`, `src/runtime/image.js`, and
   `src/components/Image.js`.
 * See `interface.d.ts` for the operations supported by the driver library.
-* TODO: need to document the tera filters
 
 ### `BUILD.js`
 * The final output shows up under the `dist` folder.
@@ -36,6 +33,12 @@ Finally, you'll be able to build the site with
  * `.md`
  * `.js`
  * `.tera`
+* Because of this, you probably want to link your obsidian vault to
+  `src/pages/` with the following command:
+```
+rm -rf src/pages/
+ln -s /path/to/obsidian/vault src/pages
+```
 * `.md` files always become HTML ones, while `.js` and `.tera` ones would need
   to have an `.html.js` or `.html.tera` extension for that.
 * Files under `src/pages/` will NOT be built if their filename or directory
@@ -54,7 +57,7 @@ name starts with an underscore.
   * `frontmatter`: An map containing all keys specified in the frontmatter.
   * `beforeFold`: A StoreObject representing all raw markdown content before a
     `===` linebreak.
-  * `body`: A Store Object representing all raw markdown content, both before
+  * `body`: A StoreObject representing all raw markdown content, both before
     and after the `===` linebreak.
 * In addition to the above properties, `index.md` also receive a `children`
   property containing an array of all pages in its directory. This includes
@@ -84,7 +87,7 @@ And use the following filters to manipulate StoreObjects:
 * `store`: converts a string into a StoreObject that can be passed to tasks
 expecting it.
 
-## Common Patterns
+### Common Patterns
 
 From Tera templates, a common thing to do is render markdown. This can be
 achieved with
@@ -128,3 +131,5 @@ Or, if you want it to be a sub-template, then with:
   </body>
 </html>
 ```
+
+See the `src/templates/` directory for fully fleshed-out examples.
