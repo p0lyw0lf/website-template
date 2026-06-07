@@ -5,8 +5,12 @@
 {{ read(file="src/fragments/head.html") | unstore }}
 </head>
 <body>
-<h1>{{ currentPage.frontmatter.title }}</h1>
-<main>
-  {{ run_js(file="src/runtime/markdown.js", arg=currentPage) | unstore }}
-</main>
+  {{ run_tera(template="src/components/Sidebar.html.tera", currentPage=currentPage) | unstore }}
+  <main>
+    <h1>{{ currentPage.frontmatter.title }}</h1>
+    <article>
+      {{ run_js(file="src/runtime/markdown.js", arg=currentPage) | unstore }}
+    </article>
+  </main>
+</body>
 </html>

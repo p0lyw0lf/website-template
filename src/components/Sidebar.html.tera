@@ -1,0 +1,45 @@
+{% set pages = run_js(file="src/runtime/listPages.js", arg="src/pages/Blog") | sort(attribute="frontmatter.published") | reverse %}
+
+{# This sort of list comprehension will be made a lot easier with Tera V2; for now, on V1, we have to do things like this: #}
+{% set dates = pages | map(attribute="frontmatter.published") %}
+{% set_global years = [] %}
+{% for d in dates %}
+  {% set year = d | date(format="%Y") %}
+  {% set_global years = years | concat(with=year) %}
+{% endfor %}
+{# NOTE: `zip(fst, snd)` is *not* a built-in filter, I created it custom in my binary. #}
+{% set pagesByYear = zip(fst=years, snd=pages) | group_by(attribute="fst") %}
+<nav>
+  <ul>
+  {% for year in years | unique %}
+    <li>
+      <details><summary>{{ year }}</summary>
+        {% set pages = pagesByYear[year] | map(attribute="snd") %}
+        {% set dates = pages | map(attribute="frontmatter.published") %}
+        {% set_global months = [] %}
+        {% for d in dates %}
+          {% set month = d | date(format="%B") %}
+          {% set_global months = months | concat(with=month) %}
+        {% endfor %}
+      {% set pagesByMonth = zip(fst=months, snd=pages) | group_by(attribute="fst") %}
+      <ul>
+      {% for month in months | unique %}
+        <li>
+          <details><summary>{{ month }}</summary>
+            {% set pages = pagesByMonth[month] | map(attribute="snd") %}
+            <ul>
+            {% for page in pages %}
+              <li>
+                <a href="/{{ page.outputPath }}">{{ page.frontmatter.title }}</a>
+              </li>
+            {% endfor %}
+            </ul>
+          </details>
+        </li>
+      {% endfor %}
+      </ul>
+    </details>
+    </li>
+  {% endfor %}
+  </ul>
+</nav>

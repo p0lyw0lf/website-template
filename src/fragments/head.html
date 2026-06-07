@@ -1,8 +1,21 @@
 <style>
-  h1 {
-    color: purple;
-  }
   body {
-    color: blue;
+    display: grid;
+    grid-template-columns: auto 1fr;
+  }
+
+  nav {
+    place-self: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+
+    padding: 1em;
+    background: yellow;
+  }
+
+  main {
+    padding: 1em;
+    background: lightgray;
   }
 </style>

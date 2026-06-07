@@ -5,14 +5,19 @@
   {{ read(file="src/fragments/head.html") | unstore }}
 </head>
 <body>
-  <h1>Index for {{ currentPage.outputPath }}</h1>
-  <ol>
-  {% for child in currentPage.children %}
-    <li>
-      <a href="/{{ child.outputPath }}">{{ child.frontmatter.title }}</a>:
-      {{ run_js(file="src/runtime/markdown.js", arg=child) | unstore }}
-    </li>
-  {% endfor %}
-  </ol>
+  {{ run_tera(template="src/components/Sidebar.html.tera", currentPage=currentPage) | unstore }}
+  <main>
+    <h1>Index for {{ currentPage.outputPath }}</h1>
+    <article>
+      <ol>
+      {% for child in currentPage.children %}
+        <li>
+          <a href="/{{ child.outputPath }}">{{ child.frontmatter.title }}</a>:
+          {{ run_js(file="src/runtime/markdown.js", body=child.beforeFold, inputPath=child.inputPath) | unstore }}
+        </li>
+      {% endfor %}
+      </ol>
+    </article>
+  </main>
 </body>
 </html>
