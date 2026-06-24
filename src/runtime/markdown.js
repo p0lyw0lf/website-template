@@ -8,12 +8,15 @@ import {
 } from "driver";
 import {
   ALLOWED_REMOTE_REGEX,
+  AUDIO_EXTENSIONS,
+  inputPathToOutputPath,
   VAULT_ROOT,
   VIDEO_EXTENSIONS,
 } from "../../build/config.js";
+import { Audio } from "../components/Audio.js";
 import { Image } from "../components/Image.js";
+import { Video } from "../components/Video.js";
 import { basename, dirname } from "../path.js";
-import { html } from "../render.js";
 import { replaceMatches } from "../util.js";
 
 /** ARG: StoreObject | Page */
@@ -44,9 +47,7 @@ const REMOTE_REGEX = /^https?:\/\//;
 /**
  * @param {RegExpMatchArray} match
  * @returns {Promise<
- *    { type: "remoteImage", url: string } |
- *    { type: "localImage", url: string } |
- *    { type: "video", url: string } |
+ *    { type: "image" | "audio" | "video"; isRemote: boolean; url: string } |
  *    undefined
  *  >} - If we want to transform this source, the StoreObject to transform.
  */
@@ -57,33 +58,46 @@ const fetchSource = async (match) => {
   }
 
   let url = filename;
-  if (REMOTE_REGEX.test(filename)) {
+  const isRemote = REMOTE_REGEX.test(filename);
+  if (isRemote) {
     if (match.groups.quotedFilename) {
       url = encodeURI(url);
     }
+  } else {
+    // Try to resolve the local filename
+    url = resolveFile(url);
+    if (!url) {
+      print("WARNING: could not resolve local file in markdown", filename);
+      return undefined;
+    }
   }
 
+  let type;
   if (VIDEO_EXTENSIONS.some((extension) => filename.endsWith(extension))) {
-    return { type: "video", url };
+    type = "video";
+  } else if (
+    AUDIO_EXTENSIONS.some((extension) => filename.endsWith(extension))
+  ) {
+    type = "audio";
+  } else {
+    type = "image";
   }
 
-  if (ALLOWED_REMOTE_REGEX.test(filename)) {
-    return { type: "remoteImage", url };
+  if (type === "image") {
+    if (ALLOWED_REMOTE_REGEX.test(filename)) {
+      return { type: "image", isRemote: true, url };
+    }
+    // Don't transform other remote images
+    if (isRemote) {
+      return undefined;
+    }
+
+    // Local images (!isRemote) are fine to transform.
+    return { type: "image", isRemote: false, url };
   }
 
-  // Don't transform other remote images
-  if (REMOTE_REGEX.test(filename)) {
-    return undefined;
-  }
-
-  // Try to resolve the local filename
-  url = resolveFile(url);
-  if (!url) {
-    print("WARNING: could not resolve local markdown file", filename);
-    return undefined;
-  }
-
-  return { type: "localImage", url };
+  // Other sources don't get transformed the same way, just return outright
+  return { type, isRemote, url };
 };
 
 /**
@@ -139,17 +153,27 @@ const tryResolve = (path) => {
 
 const output = await replaceMatches(IMAGE_REGEX, input, async (match) => {
   let src = await fetchSource(match);
-  let filename;
-  switch (src?.type) {
+  if (!src) {
+    return match[0];
+  }
+
+  let url = src.url;
+  if (!src.isRemote) {
+    url = "/" + inputPathToOutputPath(url).outputPath;
+  }
+  const filename = basename(url);
+
+  switch (src.type) {
     case "video":
-      return html`<video src="${src.url}" controls></video>`;
-    case "remoteImage":
-      filename = basename(src.url);
-      src = await get_url(src.url);
-      break;
-    case "localImage":
-      filename = basename(src.url);
-      src = await read_file(src.url);
+      return Video({ src: url });
+    case "audio":
+      return Audio({ src: url });
+    case "image":
+      if (src.isRemote) {
+        src = await get_url(src.url);
+      } else {
+        src = await read_file(src.url);
+      }
       break;
     default:
       return match[0];

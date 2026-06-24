@@ -28,6 +28,12 @@ export const VAULT_ROOT = PAGE_ROOT;
 export const VIDEO_EXTENSIONS = [".mp4", ".mkv", ".mov", ".webm"];
 
 /**
+ * MODIFY: Similar to `VIDEO_EXTENSIONS`, if you have an `![]()` with these, it
+ * will create an `<audio>` element.
+ */
+export const AUDIO_EXTENSIONS = [".mp3", ".wav", ".flac", ".m4a"];
+
+/**
  * MODIFY: If you would like to transform remote images in addition to local ones,
  * set this to match your website. Otherwise, set it to undefined.
  */
@@ -41,7 +47,7 @@ export const BUILD_EXTS = {
 
 /**
  * @param {string} inputPath - a path that will correspond to a file in the output.
- * @returns {{ outputPath: string; ext: string }} - `ext` MUST correspond with a file in the `./build` directory.
+ * @returns {{ outputPath: string; ext: string, build: boolean }} - if `build` is true, `ext` MUST correspond with a file in the `./build` directory.
  */
 export const inputPathToOutputPath = (inputPath) => {
   let [outputPath, ext] = splitext(
@@ -49,13 +55,11 @@ export const inputPathToOutputPath = (inputPath) => {
   );
 
   const builder = BUILD_EXTS[ext];
-  if (!builder) {
-    throw new Error(`invalid extension on ${inputPath}`);
-  }
-  const { alwaysHTML } = builder;
-
-  if (alwaysHTML) {
+  if (builder?.alwaysHTML) {
     outputPath += ".html";
+  }
+  if (!builder) {
+    outputPath += "." + ext;
   }
 
   if (
@@ -68,5 +72,5 @@ export const inputPathToOutputPath = (inputPath) => {
     outputPath += "/index.html";
   }
 
-  return { outputPath, ext };
+  return { outputPath, ext, build: !!builder };
 };

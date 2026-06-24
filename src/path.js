@@ -39,9 +39,11 @@ export const splitext = (path) => {
  * @returns {string} Returns the path with all directories and the filename (minus extension) passed through the `slugify()` transformation.
  */
 export const slugifyPath = (path, transform = slugify) => {
+  const safeTransform = (part) =>
+    part === "." || part === ".." ? part : transform(part);
   const parts = path.split("/");
-  const dir = parts.slice(0, -1).map(transform);
+  const dir = parts.slice(0, -1).map(safeTransform);
   const [base, ext] = splitext(parts[parts.length - 1]);
-  dir.push(`${transform(base)}${ext ? "." : ""}${ext}`);
+  dir.push(`${safeTransform(base)}${ext ? "." : ""}${ext}`);
   return dir.join("/");
 };

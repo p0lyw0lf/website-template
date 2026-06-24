@@ -7,7 +7,6 @@ import {
   write_output,
 } from "driver";
 import {
-  BUILD_EXTS,
   inputPathToOutputPath,
   PAGE_ROOT,
   PUBLIC_ROOT,
@@ -53,18 +52,21 @@ const build = async (inputPath) => {
 
         if (file_type(entry) === "dir") {
           await run_js("BUILD.js", entry);
-        } else if (
-          Object.keys(BUILD_EXTS).some((ext) => entry.endsWith(`.${ext}`))
-        ) {
+        } else {
           await run_js("BUILD.js", entry);
         }
       }),
     );
   } else {
-    const { outputPath, ext } = inputPathToOutputPath(inputPath);
-    let output = await run_js(`./build/${ext}.js`, { inputPath, outputPath });
-    if (outputPath.endsWith(".html")) {
-      output = await minify_html(output);
+    const { outputPath, ext, build } = inputPathToOutputPath(inputPath);
+    let output;
+    if (build) {
+      output = await run_js(`./build/${ext}.js`, { inputPath, outputPath });
+      if (outputPath.endsWith(".html")) {
+        output = await minify_html(output);
+      }
+    } else {
+      output = await read_file(inputPath);
     }
     write_output(outputPath, output);
   }
